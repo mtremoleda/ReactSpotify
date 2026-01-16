@@ -52,7 +52,7 @@ const ProfileScreen = () => {
         <View style={styles.profileHeader}>
           <Image
             source={{
-              uri: 'https://placehold.co/150',
+              uri: 'https://hips.hearstapps.com/hmg-prod/images/elon-musk-gettyimages-2147789844-web-675b2c17301ea.jpg?crop=0.6666666666666666xw:1xh;center,top&resize=640:*',
             }}
             style={styles.profileImage}
           />

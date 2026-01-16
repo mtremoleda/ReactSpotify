@@ -8,17 +8,25 @@ import {
   TouchableOpacity,
   ScrollView,
 } from 'react-native';
+import { Audio } from 'expo-av';
 import { useLocalSearchParams } from 'expo-router';
 import { fetchSongs } from '../../services/Songs';
 import { Song } from '../../interfaces/Song';
 
 const SongDetailScreen = () => {
-  const { id } = useLocalSearchParams(); // Obtiene el ID de la canción desde la URL
+  const { id } = useLocalSearchParams();
   const [song, setSong] = useState<Song | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [sound, setSound] = useState<Audio.Sound | null>(null);
+  const [isPlaying, setIsPlaying] = useState<boolean>(false);
 
   useEffect(() => {
     loadSong();
+    return () => {
+      if (sound) {
+        sound.unloadAsync();
+      }
+    };
   }, [id]);
 
   const loadSong = async () => {
@@ -26,6 +34,39 @@ const SongDetailScreen = () => {
     const foundSong = allSongs.find((s) => s.id === id);
     setSong(foundSong || null);
     setLoading(false);
+  };
+
+  const playAudio = async () => {
+    try {
+      console.log('Intentando reproducir audio...');
+      const { sound } = await Audio.Sound.createAsync(
+        { uri: 'https://actions.google.com/sounds/v1/cartoon/cartoon_boing.ogg' } // Esta URL funciona
+      );
+      console.log('Audio cargado:', sound);
+      setSound(sound);
+
+      await sound.playAsync();
+      console.log('Sonido reproduciéndose...');
+      setIsPlaying(true);
+    } catch (error: any) {
+      console.error('Error al reproducir el audio:', error.message || error);
+    }
+  };
+
+  const pauseAudio = async () => {
+    if (sound) {
+      await sound.pauseAsync();
+      setIsPlaying(false);
+      console.log('Sonido pausado.');
+    }
+  };
+
+  const togglePlayback = () => {
+    if (isPlaying) {
+      pauseAudio();
+    } else {
+      playAudio();
+    }
   };
 
   if (loading) {
@@ -47,22 +88,19 @@ const SongDetailScreen = () => {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Imagen de portada grande */}
         <Image
-          source={{ uri: 'https://placehold.co/400' }} // Cambia por imagen real si tu API la devuelve
+          source={{ uri: 'https://cdn-images.dzcdn.net/images/cover/4c1bfb589c432b2c82aa0eeb04c52f1b/1900x1900-000000-80-0-0.jpg' }}
           style={styles.albumArtLarge}
         />
 
-        {/* Información de la canción */}
         <View style={styles.infoContainer}>
           <Text style={styles.songTitle}>{song.titol}</Text>
           <Text style={styles.songArtist}>{song.artista}</Text>
           <Text style={styles.songAlbum}>{song.album}</Text>
           <Text style={styles.songDuration}>{song.durada} minutos</Text>
 
-          {/* Botón de reproducción (simulado) */}
-          <TouchableOpacity style={styles.playButton}>
-            <Text style={styles.playButtonText}>▶ Reproducir</Text>
+          <TouchableOpacity style={styles.playButton} onPress={togglePlayback}>
+            <Text style={styles.playButtonText}>{isPlaying ? '⏸ Pausar' : '▶ Reproducir'}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -112,7 +150,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   playButton: {
-    backgroundColor: '#1DB954', // Verde Spotify
+    backgroundColor: '#1DB954',
     paddingVertical: 15,
     paddingHorizontal: 40,
     borderRadius: 30,

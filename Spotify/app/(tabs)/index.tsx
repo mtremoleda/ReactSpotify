@@ -53,7 +53,7 @@ const HomeScreen = () => {
    <Link href={`/song/${item.id}`} asChild>
       <TouchableOpacity style={styles.itemCard}>
         <Image
-          source={{ uri: 'https://placehold.co/100' }}
+          source={{ uri: 'https://hips.hearstapps.com/hmg-prod/images/elon-musk-gettyimages-2147789844-web-675b2c17301ea.jpg?crop=0.6666666666666666xw:1xh;center,top&resize=640:*' }}
           style={styles.albumArt}
         />
         <View style={styles.songInfo}>
