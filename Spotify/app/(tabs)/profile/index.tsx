@@ -43,7 +43,7 @@ const ProfileScreen = () => {
         <Text style={styles.error}>No se pudo cargar el perfil</Text>
       </SafeAreaView>
     );
-  }
+  } 
 
   return (
     <SafeAreaView style={styles.container}>
@@ -67,9 +67,9 @@ const ProfileScreen = () => {
             <Text style={styles.infoLabel}>Nombre:</Text>
             <Text style={styles.infoValue}>{user.nom}</Text>
           </View>
-          <View style={styles.infoRow}>
+         <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>ID:</Text>
-            <Text style={styles.infoValue}>{user.id}</Text>
+           <Text style={styles.infoValue}>{user.id}</Text>
           </View>
         </View>
       </ScrollView>

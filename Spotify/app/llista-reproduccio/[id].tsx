@@ -8,49 +8,32 @@ import {
   TouchableOpacity,
   Image,
 } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { fetchPlaylistById, fetchSongsFromPlaylist } from '../../services/playlists';
-import { Playlist } from '../../interfaces/Playlist';
+import { useLocalSearchParams } from 'expo-router';
+import { fetchSongsFromLlista } from '../../services/LlistesReproduccio';
 import { LlistaReproduccioCancoResponse } from '../../interfaces/LlistaReproduccioCancoResponse';
-import { fetchLlistesReproduccio} from '../../services/LlistesReproduccio';
 
-
-const PlaylistDetailScreen = () => {
+const LlistaReproduccioDetailScreen = () => {
   const { id } = useLocalSearchParams();
-  const router = useRouter();
-  const [playlist, setPlaylist] = useState<Playlist | null>(null);
   const [songs, setSongs] = useState<LlistaReproduccioCancoResponse[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadPlaylist();
+    loadSongs();
   }, [id]);
 
-  const loadPlaylist = async () => {
+  const loadSongs = async () => {
     try {
-      // Cargar información básica de la playlist
-      const playlistData = await fetchPlaylistById(id as string);
-      setPlaylist(playlistData);
-
-      // Cargar canciones de la playlist
-      const playlistSongs = await fetchSongsFromPlaylist(id as string);
-      setSongs(playlistSongs);
+      const songsData = await fetchSongsFromLlista(id as string);
+      setSongs(songsData);
     } catch (error) {
-      console.error('Error al cargar playlist:', error);
+      console.error('Error al cargar canciones:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const handlePlaySong = (songId: string) => {
-    // Aquí puedes redirigir a la canción específica si tienes el ID
-    // Por ahora, redirigimos a una pantalla genérica de canción
-    console.log('Canción seleccionada:', songId);
-    // router.push(`/song/${songId}`); // Descomenta cuando tengas la ruta
-  };
-
   const renderSong = ({ item }: { item: LlistaReproduccioCancoResponse }) => (
-    <TouchableOpacity style={styles.songRow} onPress={() => handlePlaySong(item.id)}>
+    <TouchableOpacity style={styles.songRow}>
       <View style={styles.songInfo}>
         <Text style={styles.songTitle}>{item.titol}</Text>
         <Text style={styles.songArtist}>{item.artista}</Text>
@@ -63,15 +46,7 @@ const PlaylistDetailScreen = () => {
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
-        <Text style={styles.loading}>Cargando playlist...</Text>
-      </SafeAreaView>
-    );
-  }
-
-  if (!playlist) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <Text style={styles.error}>Playlist no encontrada</Text>
+        <Text style={styles.loading}>Cargando...</Text>
       </SafeAreaView>
     );
   }
@@ -79,14 +54,8 @@ const PlaylistDetailScreen = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Image 
-          source={{ 
-            uri:  "https://placehold.co/300x300/6A0572/FFFFFF?text=🎵" 
-          }} 
-          style={styles.playlistCover} 
-        />
-        <Text style={styles.playlistTitle}>{playlist.nom}</Text>
-        <Text style={styles.playlistMeta}>{songs.length} canciones</Text>
+        <Text style={styles.title}>Lista de reproducción</Text>
+        <Text style={styles.subtitle}>{songs.length} canciones</Text>
       </View>
 
       <FlatList
@@ -108,19 +77,13 @@ const styles = StyleSheet.create({
     padding: 20,
     alignItems: 'center',
   },
-  playlistCover: {
-    width: 200,
-    height: 200,
-    borderRadius: 10,
-    marginBottom: 20,
-  },
-  playlistTitle: {
+  title: {
     fontSize: 24,
     fontWeight: 'bold',
     color: '#FFFFFF',
     marginBottom: 8,
   },
-  playlistMeta: {
+  subtitle: {
     fontSize: 16,
     color: '#B3B3B3',
   },
@@ -162,11 +125,6 @@ const styles = StyleSheet.create({
     color: '#B3B3B3',
     marginTop: 20,
   },
-  error: {
-    textAlign: 'center',
-    color: '#B3B3B3',
-    marginTop: 20,
-  },
 });
 
-export default PlaylistDetailScreen;
+export default LlistaReproduccioDetailScreen;
