@@ -31,7 +31,7 @@ const PlaylistsScreen = () => {
   };
 
   const renderPlaylist = (item: Playlist) => (
-    <Link href={`/playlists/${item.id}` as `/playlists/[id]`} asChild>  
+    <Link href={`/playlists/${item.id}` as `/playlists/[id]`} asChild>
       <TouchableOpacity style={styles.playlistCard}>
         {/* Icono de playlist */}
         <View style={styles.playlistIcon}>

@@ -7,13 +7,12 @@ import {
   FlatList,
   TouchableOpacity,
   Image,
+  Alert,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { fetchPlaylistById, fetchSongsFromPlaylist } from '../../services/playlists';
+import { fetchPlaylistById, fetchSongsFromPlaylist, removeSongFromPlaylist } from '../../services/playlists';
 import { Playlist } from '../../interfaces/Playlist';
 import { LlistaReproduccioCancoResponse } from '../../interfaces/LlistaReproduccioCancoResponse';
-import { fetchLlistesReproduccio} from '../../services/LlistesReproduccio';
-
 
 const PlaylistDetailScreen = () => {
   const { id } = useLocalSearchParams();
@@ -42,9 +41,32 @@ const PlaylistDetailScreen = () => {
     }
   };
 
+  const handleRemoveSong = (songId: string) => {
+    Alert.alert(
+      'Eliminar canción',
+      '¿Estás seguro de que quieres eliminar esta canción de la playlist?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Eliminar',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await removeSongFromPlaylist(id as string, songId);
+              Alert.alert('Éxito', 'Canción eliminada de la playlist');
+              loadPlaylist(); // Refrescar la lista
+            } catch (error) {
+              console.error('Error al eliminar canción:', error);
+              Alert.alert('Error', 'No se pudo eliminar la canción');
+            }
+          },
+        },
+      ]
+    );
+  };
+
   const handlePlaySong = (songId: string) => {
     // Aquí puedes redirigir a la canción específica si tienes el ID
-    // Por ahora, redirigimos a una pantalla genérica de canción
     console.log('Canción seleccionada:', songId);
     // router.push(`/song/${songId}`); // Descomenta cuando tengas la ruta
   };
@@ -56,7 +78,15 @@ const PlaylistDetailScreen = () => {
         <Text style={styles.songArtist}>{item.artista}</Text>
         <Text style={styles.songAlbum}>{item.album}</Text>
       </View>
-      <Text style={styles.songDuration}>{item.durada || 0} min</Text>
+      <View style={styles.songActions}>
+        <Text style={styles.songDuration}>{item.durada || 0} min</Text>
+        <TouchableOpacity 
+          style={styles.removeButton}
+          onPress={() => handleRemoveSong(item.id)}
+        >
+          <Text style={styles.removeButtonText}>🗑️</Text>
+        </TouchableOpacity>
+      </View>
     </TouchableOpacity>
   );
 
@@ -81,7 +111,7 @@ const PlaylistDetailScreen = () => {
       <View style={styles.header}>
         <Image 
           source={{ 
-            uri:  "https://placehold.co/300x300/6A0572/FFFFFF?text=🎵" 
+            uri: "https://placehold.co/300x300/6A0572/FFFFFF?text=🎵" 
           }} 
           style={styles.playlistCover} 
         />
@@ -153,9 +183,23 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#535353',
   },
+  songActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   songDuration: {
     fontSize: 14,
     color: '#B3B3B3',
+    marginRight: 10,
+  },
+  removeButton: {
+    backgroundColor: '#ff4d4d',
+    padding: 5,
+    borderRadius: 3,
+  },
+  removeButtonText: {
+    color: '#fff',
+    fontSize: 12,
   },
   loading: {
     textAlign: 'center',

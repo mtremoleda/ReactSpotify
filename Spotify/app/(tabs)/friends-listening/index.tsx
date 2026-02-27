@@ -34,43 +34,42 @@ const FriendsListeningScreen = () => {
     wsRef.current = ws;
 
     ws.onopen = () => {
-      console.log('✅ Conectado al servidor WebSocket');
+      console.log('Conectado al servidor WebSocket');
       // Identificarte como "monitor" para no enviar canción
       ws.send(`USUARIO:Monitor-${Date.now()}`);
     };
 
     ws.onmessage = (event: any) => {
-      const message = event.data;
-      console.log('📢 Mensaje recibido:', message);
+  const message = event.data;
+  console.log('Mensaje recibido:', message);
 
-      // Formato esperado: "Usuario X está reproduciendo: Canción Y"
-      if (message.includes('está reproduciendo:')) {
-        const parts = message.split(' está reproduciendo: ');
-        if (parts.length === 2) {
-          const user = parts[0];
-          const song = parts[1];
+  // Formato catalán: "Ion Musk està reproduint: spacio"
+  if (message.includes('està reproduint:')) {
+    const parts = message.split(' està reproduint: ');
+    if (parts.length === 2) {
+      const user = parts[0];
+      const song = parts[1];
 
-          const newEntry: ListeningEntry = {
-            id: `${user}-${Date.now()}`,
-            user,
-            song,
-            timestamp: new Date(),
-          };
+      const newEntry: ListeningEntry = {
+        id: `${user}-${Date.now()}`,
+        user,
+        song,
+        timestamp: new Date(),
+      };
 
-          setListeningList(prev => {
-            // Actualizar si ya existe el usuario, o añadir nuevo
-            const existingIndex = prev.findIndex(item => item.user === user);
-            if (existingIndex !== -1) {
-              const updated = [...prev];
-              updated[existingIndex] = newEntry;
-              return updated;
-            } else {
-              return [...prev, newEntry];
-            }
-          });
+      setListeningList(prev => {
+        const existingIndex = prev.findIndex(item => item.user === user);
+        if (existingIndex !== -1) {
+          const updated = [...prev];
+          updated[existingIndex] = newEntry;
+          return updated;
+        } else {
+          return [...prev, newEntry];
         }
-      }
-    };
+      });
+    }
+  }
+};
 
     ws.onerror = (error: any) => {
       console.error('❌ Error WebSocket:', error);

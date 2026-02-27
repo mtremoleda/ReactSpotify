@@ -9,33 +9,32 @@ import {
   Image,
   ScrollView,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, Link } from 'expo-router';
 import { TrackSquareCard } from '../../components/TrackSquareCard';
-import { PlaylistSquareCard } from '../../components/PlaylistSquareCard';
 import { fetchSongs } from '../../services/Songs';
+import { fetchPlaylists } from '../../services/playlists';
 import { Song } from '../../interfaces/Song';
+import { Playlist } from '../../interfaces/Playlist';
 
 const HomeScreen = () => {
   const [songs, setSongs] = useState<Song[]>([]);
-  const [playlists, setPlaylists] = useState([
-    { id: '1', title: 'Mis Favoritas', songCount: 24, coverUrl: 'https://placehold.co/300x300/FF6B6B/FFFFFF?text=♥' },
-    { id: '2', title: 'Relax', songCount: 18, coverUrl: 'https://placehold.co/300x300/4ECDC4/FFFFFF?text=🧘' },
-    { id: '3', title: 'Energía', songCount: 32, coverUrl: 'https://placehold.co/300x300/FFD166/000000?text=⚡' },
-    { id: '4', title: 'Electrónica', songCount: 45, coverUrl: 'https://placehold.co/300x300/6A0572/FFFFFF?text=🎵' },
-  ]);
+  const [playlists, setPlaylists] = useState<Playlist[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
-    loadSongs();
+    loadSongsAndPlaylists();
   }, []);
 
-  const loadSongs = async () => {
+  const loadSongsAndPlaylists = async () => {
     try {
       const allSongs = await fetchSongs();
       setSongs(allSongs.slice(0, 10)); // Solo las primeras 10 canciones
+
+      const allPlaylists = await fetchPlaylists();
+      setPlaylists(allPlaylists);
     } catch (error) {
-      console.error('Error al cargar canciones:', error);
+      console.error('Error al cargar datos:', error);
     } finally {
       setLoading(false);
     }
@@ -45,10 +44,17 @@ const HomeScreen = () => {
     router.push(`/song/${id}`);
   };
 
-  const handlePlayPlaylist = (id: string) => {
-    // Puedes redirigir a una pantalla de playlist
-    console.log('Playlist seleccionada:', id);
-  };
+  const renderPlaylist = (item: Playlist) => (
+    <Link href={`/playlists/${item.id}` as `/playlists/[id]`} asChild>
+      <TouchableOpacity style={styles.playlistCard}>
+        {/* Icono de playlist */}
+        <View style={styles.playlistIcon}>
+          <Text style={styles.iconText}>🎵</Text>
+        </View>
+        <Text style={styles.playlistName} numberOfLines={1}>{item.nom}</Text>
+      </TouchableOpacity>
+    </Link>
+  );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -101,21 +107,14 @@ const HomeScreen = () => {
           />
         </View>
 
-        {/* Sección de playlists */}
+        {/* Sección de playlists reales */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Tus playlists</Text>
           <FlatList
             data={playlists}
             horizontal
             showsHorizontalScrollIndicator={false}
-            renderItem={({ item }) => (
-              <PlaylistSquareCard
-                title={item.title}
-                coverUrl={item.coverUrl}
-                songCount={item.songCount}
-                onPress={() => handlePlayPlaylist(item.id)}
-              />
-            )}
+            renderItem={({ item }) => renderPlaylist(item)}
             keyExtractor={(item) => item.id}
             contentContainerStyle={styles.horizontalList}
           />
@@ -159,6 +158,33 @@ const styles = StyleSheet.create({
   horizontalList: {
     paddingLeft: 0,
     paddingRight: 20,
+  },
+  playlistCard: {
+    paddingVertical: 15,
+    paddingHorizontal: 20,
+    backgroundColor: '#181818',
+    borderRadius: 8,
+    alignItems: 'center',
+    width: 150, // Ancho fijo
+    marginRight: 12,
+  },
+  playlistIcon: {
+    width: 60,
+    height: 60,
+    backgroundColor: '#282828',
+    borderRadius: 5,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  iconText: {
+    fontSize: 24,
+  },
+  playlistName: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: 'bold',
+    textAlign: 'center',
   },
 });
 
